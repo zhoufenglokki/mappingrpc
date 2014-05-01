@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>10.0.0</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{AA13986B-5E77-4143-935D-AE1FBEC8CF36}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>mappingrpc</RootNamespace>
+    <AssemblyName>mappingrpc</AssemblyName>
+    <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug</OutputPath>
+    <DefineConstants>DEBUG;</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ConsolePause>false</ConsolePause>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>none</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ConsolePause>false</ConsolePause>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="Common.Logging">
+      <HintPath>..\..\lib\net20\mina.net\Common.Logging.dll</HintPath>
+    </Reference>
+    <Reference Include="Mina.NET">
+      <HintPath>..\..\lib\net20\mina.net\Mina.NET.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\..\lib\net20\json\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AssemblyInfo.cs" />
+    <Compile Include="ReceiveHandler.cs" />
+    <Compile Include="RpcClient.cs" />
+    <Compile Include="CustomPackageFactory.cs" />
+    <Compile Include="LengthFieldDecoder.cs" />
+    <Compile Include="command\ResultCommand.cs" />
+    <Compile Include="constant\MsgTypeConstant.cs" />
+    <Compile Include="command\WampCommandBase.cs" />
+    <Compile Include="command\CallCommand.cs" />
+    <Compile Include="MetaHolder.cs" />
+    <Compile Include="CallResultFuture.cs" />
+    <Compile Include="LengthFieldEncoder.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <ItemGroup>
+    <Folder Include="command\" />
+    <Folder Include="constant\" />
+  </ItemGroup>
+</Project>
