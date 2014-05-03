@@ -70,7 +70,7 @@ namespace mappingrpc
 			asyncResult.resultType = typeof(T);
 			ioSession.Write (callCmd);
 			lock (asyncResult.monitorLock) {
-				Monitor.Wait (asyncResult.monitorLock);
+				Monitor.Wait (asyncResult.monitorLock, 1000);
 			}
 			if (!asyncResult.done) {
 				return default(T);
