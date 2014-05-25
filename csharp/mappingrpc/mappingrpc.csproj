@@ -32,13 +32,13 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="Common.Logging">
-      <HintPath>..\..\lib\net20\mina.net\Common.Logging.dll</HintPath>
+      <HintPath>..\..\..\..\csharp\lib\net20\mina.net\Common.Logging.dll</HintPath>
     </Reference>
     <Reference Include="Mina.NET">
-      <HintPath>..\..\lib\net20\mina.net\Mina.NET.dll</HintPath>
+      <HintPath>..\..\..\..\csharp\lib\net20\mina.net\Mina.NET.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json">
-      <HintPath>..\..\lib\net20\json\Newtonsoft.Json.dll</HintPath>
+      <HintPath>..\..\..\..\csharp\lib\net20\json\Newtonsoft.Json.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>

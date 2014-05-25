@@ -24,6 +24,8 @@ public class LocalServerTest extends AbstractJUnit4SpringContextTests {
 		User result = userService.registerUser(user, "234");
 		System.err.println(result.getDisplayName() + "\nid:" + result.getId());
 		
+		Thread.sleep(60000);
+		
 		user.setDisplayName("zhoufeng");
 		result = userService.registerUser(user, "789");
 		System.err.println(result.getDisplayName() + "\nid:" + result.getId());

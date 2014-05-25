@@ -13,6 +13,7 @@ public class MetaHolder {
 	private Map<String, ProviderMeta> providerHolder = new HashMap<>();
 	private Map<String, ServiceInvocationHandler> clientProxyHolder = new HashMap<>();
 	private Map<Long, CallResultFuture> requestPool = new ConcurrentHashMap<>();
+	private long feature1;
 	private ExecutorService threadPool;
 	private ExecutorService sysThreadPool;// for QOS
 
@@ -38,5 +39,13 @@ public class MetaHolder {
 
 	public void setThreadPool(ExecutorService threadPool) {
 		this.threadPool = threadPool;
+	}
+
+	public long getFeature1() {
+		return feature1;
+	}
+
+	public void setFeature1(long feature1) {
+		this.feature1 = feature1;
 	}
 }

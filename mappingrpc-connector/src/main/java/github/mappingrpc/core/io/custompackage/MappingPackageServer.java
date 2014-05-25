@@ -14,10 +14,13 @@ import io.netty.handler.codec.LengthFieldPrepender;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 
+import java.io.Closeable;
+import java.io.IOException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class MappingPackageServer {
+public class MappingPackageServer implements Closeable {
 	static Logger log = LoggerFactory.getLogger(MappingPackageServer.class);
 
 	private MetaHolder metaHolder;
@@ -59,5 +62,11 @@ public class MappingPackageServer {
 			log.error("{bindPort:" + serverPort + "}", ex);
 			throw new RuntimeException(ex);
 		}
+	}
+
+	@Override
+	public void close() {
+		bossEventLoop.shutdownGracefully();
+		workerEventLoop.shutdownGracefully();
 	}
 }

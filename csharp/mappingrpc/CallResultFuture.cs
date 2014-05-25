@@ -7,6 +7,7 @@ namespace mappingrpc
 	{
 		public Type resultType;
 		public bool done = false;
+		public bool isExceptionResult = false;
 		public object result;
 		public object monitorLock = new System.Object();
 

@@ -4,7 +4,7 @@ import org.junit.Test;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
 
-@ContextConfiguration({"/server/spring-context.xml"})
+@ContextConfiguration({"/appSide/spring-context.xml"})
 public class AppSideTest extends AbstractJUnit4SpringContextTests {
 
 	@Test

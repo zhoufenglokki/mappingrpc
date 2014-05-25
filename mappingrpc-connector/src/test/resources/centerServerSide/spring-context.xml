@@ -11,8 +11,9 @@
 		class="mappingrpc.test.centerserver.service.mock.UserServiceImpl" />
 	
 	<bean name="gatewayEntry" class="github.mappingrpc.core.CoreEngine" init-method="start">
-		<constructor-arg value="0" />
 		<constructor-arg value="true" />
+		<property name="listenPort" value="6200" />
+		
 		<property name="providerList">
 			<list>
 				<ref bean="userServiceImpl" />

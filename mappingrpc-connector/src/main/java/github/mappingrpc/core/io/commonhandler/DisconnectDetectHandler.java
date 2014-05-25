@@ -1,0 +1,33 @@
+package github.mappingrpc.core.io.commonhandler;
+
+import github.mappingrpc.core.constant.BossThreadEventType;
+import github.mappingrpc.core.event.BossThreadEvent;
+import io.netty.channel.ChannelDuplexHandler;
+import io.netty.channel.ChannelHandler.Sharable;
+import io.netty.channel.ChannelHandlerContext;
+
+import java.util.concurrent.BlockingQueue;
+
+@Sharable
+public class DisconnectDetectHandler extends ChannelDuplexHandler {
+	private BlockingQueue<BossThreadEvent> nettyEventToOuter;
+
+	public DisconnectDetectHandler(BlockingQueue<BossThreadEvent> nettyEventToOuter) {
+		this.nettyEventToOuter = nettyEventToOuter;
+	}
+
+	/*
+	public void channelActive(ChannelHandlerContext ctx) throws Exception {
+		nettyEventToOuter.add(new BossThreadEvent(BossThreadEventType.channelConnected));
+	}*/
+
+	public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+		nettyEventToOuter.add(new BossThreadEvent(BossThreadEventType.channelDisconnected));
+		super.channelInactive(ctx);
+	}
+
+	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
+		ctx.close();
+		nettyEventToOuter.add(new BossThreadEvent(BossThreadEventType.channelDisconnected));
+	}
+}

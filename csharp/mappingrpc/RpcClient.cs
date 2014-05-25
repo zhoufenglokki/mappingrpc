@@ -53,9 +53,21 @@ namespace mappingrpc
 				JArray resultArray = JArray.Parse (jsonArray [3].ToString());
 				future.result = resultArray.First.ToObject(future.resultType);
 				future.done = true;
+				future.isExceptionResult = false;
 				lock (future.monitorLock) {
 					Monitor.PulseAll (future.monitorLock);
 				}
+				return;
+			}
+			if (commandType == MsgTypeConstant.error) {
+				long requestId = jsonArray [2].ToObject<int> ();
+				CallResultFuture future = (CallResultFuture)metaHolder.requestPool [requestId];
+				future.done = true;
+				future.isExceptionResult = true;
+				lock (future.monitorLock) {
+					Monitor.PulseAll (future.monitorLock);
+				}
+				return;
 			}
 			// TODO 需要改为线程池处理
 		}
@@ -75,8 +87,12 @@ namespace mappingrpc
 			if (!asyncResult.done) {
 				return default(T);
 			}
-			return (T)asyncResult.result;
-			//return default(T);
+			if (!asyncResult.isExceptionResult) {
+				return (T)asyncResult.result;
+			}
+			if (asyncResult.isExceptionResult) {
+
+			}
 		}
 	}
 }
