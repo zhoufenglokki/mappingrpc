@@ -13,5 +13,6 @@ merge biz threadpool to EventLoopGroup
 Done
 ===========
 MappingPackageClient serverList support multiple server
+
 MappingPackageClient reconnect
 
