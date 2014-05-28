@@ -18,6 +18,7 @@ namespace mappingrpc
 		MetaHolder metaHolder = new MetaHolder ();
 		AsyncSocketConnector connector;
 		IoSession ioSession;
+		volatile int connecting = 0; 
 
 		public RpcClient (string host, short port)
 		{
@@ -27,6 +28,22 @@ namespace mappingrpc
 
 		public void start ()
 		{
+			makeConnectionInCallerThread (1);
+		}
+
+		private void makeConnectionInCallerThread(int waitInMs) {
+			if (ioSession != null) {
+				if (ioSession.Connected) {
+					return;
+				}
+			}
+			if (connecting == 1) {
+				return;
+			}
+			int orgValue = Interlocked.CompareExchange (ref connecting, 1, 0);
+			if (orgValue == 1) {
+				return;
+			}
 			connector = new AsyncSocketConnector ();
 			connector.FilterChain.AddLast ("codec", new ProtocolCodecFilter (new CustomPackageFactory ()));
 			connector.FilterChain.AddLast ("logger", new LoggingFilter ());
@@ -38,8 +55,11 @@ namespace mappingrpc
 			Console.WriteLine ("connecting...");
 			var addresses = System.Net.Dns.GetHostAddresses(host);
 			var endPoint = new IPEndPoint(addresses[0], port);
-			connector.Connect (endPoint);
-			Thread.Sleep (800);
+			try{
+				connector.Connect (endPoint).Await (waitInMs);
+			}finally{
+				connecting = 0;
+			}
 		}
 
 		public void onMessageReceived (object sender, IoSessionMessageEventArgs eventArgs)
@@ -59,7 +79,7 @@ namespace mappingrpc
 				}
 				return;
 			}
-			if (commandType == MsgTypeConstant.error) {
+			if (commandType == MsgTypeConstant.error) {// TODO
 				long requestId = jsonArray [2].ToObject<int> ();
 				CallResultFuture future = (CallResultFuture)metaHolder.requestPool [requestId];
 				future.done = true;
@@ -72,8 +92,12 @@ namespace mappingrpc
 			// TODO 需要改为线程池处理
 		}
 
-		public T invoke<T> (string mappingUrl, params object[] paramList)
+		public T invoke<T> (int timeoutInMs, string mappingUrl, params object[] paramList)
 		{
+			makeConnectionInCallerThread (15000);
+			if (ioSession == null || !ioSession.Connected) {
+				return default(T);
+			}
 			CallCommand callCmd = new CallCommand ();
 			callCmd.procedureUri = mappingUrl;
 			callCmd.args = paramList;
@@ -82,17 +106,18 @@ namespace mappingrpc
 			asyncResult.resultType = typeof(T);
 			ioSession.Write (callCmd);
 			lock (asyncResult.monitorLock) {
-				Monitor.Wait (asyncResult.monitorLock, 1000);
+				Monitor.Wait (asyncResult.monitorLock, timeoutInMs);
 			}
 			if (!asyncResult.done) {
-				return default(T);
+				throw new TimeoutException("{timeoutInMs:" + timeoutInMs +'}');
 			}
 			if (!asyncResult.isExceptionResult) {
 				return (T)asyncResult.result;
 			}
 			if (asyncResult.isExceptionResult) {
-
+				throw new Exception ((string)asyncResult.result);
 			}
+			return default(T);
 		}
 	}
 }
