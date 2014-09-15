@@ -42,6 +42,13 @@ public class WampCommandBaseHandler implements Runnable {
 			ResultCommandHandler.processCommand(metaHolder, channelCtx, jsonArray);
 			break;
 		case MsgTypeConstant.error:
+			ExceptionErrorCommandHandler.processCommand(metaHolder, channelCtx, jsonArray);
+			break;
+		case MsgTypeConstant.hello:
+			HelloCommandHandler.processCommand(metaHolder, channelCtx, jsonArray);
+			break;
+		case MsgTypeConstant.wellcome:
+			WellcomeCommandHandler.processCommand(metaHolder, channelCtx, jsonArray);
 			break;
 		}
 	}

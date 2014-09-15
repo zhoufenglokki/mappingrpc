@@ -18,8 +18,9 @@ import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.BeanNameAware;
 
-public class CoreEngine implements Closeable {
+public class CoreEngine implements BeanNameAware, Closeable {
 	static Logger log = LoggerFactory.getLogger(CoreEngine.class);
 	
 	private boolean isListenEngine = false;
@@ -27,6 +28,7 @@ public class CoreEngine implements Closeable {
 	private String listenIp; // TODO
 	private short listenPort = 6200;
 	private Map<String, String> serverList;
+	private String beanName;
 
 	MetaHolder metaHolder = new MetaHolder();
 	MappingPackageServer listenServer;
@@ -97,6 +99,10 @@ public class CoreEngine implements Closeable {
 			listenServer.close();
 		}
 	}
+	
+	public boolean isRpcWithServerOk(){
+		return connectServer.isRpcWithServerOk();
+	} 
 
 	public void setListenPort(short listenPort) {
 		this.listenPort = listenPort;
@@ -112,5 +118,10 @@ public class CoreEngine implements Closeable {
 
 	public void setFeature1(long connectionFeature) {
 		this.feature1 = connectionFeature;
+	}
+
+	@Override
+	public void setBeanName(String name) {
+		this.beanName = name;
 	}
 }

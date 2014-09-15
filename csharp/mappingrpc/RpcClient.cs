@@ -8,6 +8,7 @@ using mappingrpc.command;
 using Mina.Filter.Logging;
 using Newtonsoft.Json;
 using System.Threading;
+using System.Collections.Generic;
 
 namespace mappingrpc
 {
@@ -15,6 +16,9 @@ namespace mappingrpc
 	{
 		private string host;
 		private short port;
+		private IDictionary<string, short> serverList;
+
+		Random rand = new Random ();
 		MetaHolder metaHolder = new MetaHolder ();
 		AsyncSocketConnector connector;
 		IoSession ioSession;
@@ -24,6 +28,10 @@ namespace mappingrpc
 		{
 			this.host = host;
 			this.port = port;
+		}
+
+		public RpcClient(IDictionary<string, short> serverList){
+			this.serverList = serverList;
 		}
 
 		public void start ()
@@ -44,6 +52,9 @@ namespace mappingrpc
 			if (orgValue == 1) {
 				return;
 			}
+
+			int serverIndex = rand.Next (serverList.Count);
+
 			connector = new AsyncSocketConnector ();
 			connector.FilterChain.AddLast ("codec", new ProtocolCodecFilter (new CustomPackageFactory ()));
 			connector.FilterChain.AddLast ("logger", new LoggingFilter ());

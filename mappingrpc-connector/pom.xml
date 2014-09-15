@@ -4,7 +4,7 @@
 
 	<groupId>com.github.mappingrpc</groupId>
 	<artifactId>mappingrpc-connector</artifactId>
-	<version>1.0.0-SNAPSHOT</version>
+	<version>1.0.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
 	<name>mappingrpc-connector</name>
@@ -75,15 +75,21 @@ encoding//<project>=UTF-8
 	</build>
 	<dependencies>
 		<dependency>
-			<groupId>com.alibaba</groupId>
-			<artifactId>fastjson</artifactId>
-			<version>1.1.39</version>
+			<groupId>github.rpcappmodel</groupId>
+			<artifactId>rpcappmodel</artifactId>
+			<version>1.0.0-SNAPSHOT</version>
 		</dependency>
 
 		<dependency>
 			<groupId>io.netty</groupId>
 			<artifactId>netty-all</artifactId>
-			<version>4.0.19.Final</version>
+			<version>4.1.0.Beta3</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.alibaba</groupId>
+			<artifactId>fastjson</artifactId>
+			<version>1.1.41</version>
 		</dependency>
 
 		<dependency>

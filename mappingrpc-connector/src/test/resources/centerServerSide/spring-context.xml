@@ -6,17 +6,23 @@
         http://www.springframework.org/schema/context
 		http://www.springframework.org/schema/context/spring-context.xsd">
 
-	<context:annotation-config />
+	<context:annotation-config/>
 	<bean name="userServiceImpl"
-		class="mappingrpc.test.centerserver.service.mock.UserServiceImpl" />
-	
-	<bean name="gatewayEntry" class="github.mappingrpc.core.CoreEngine" init-method="start">
-		<constructor-arg value="true" />
-		<property name="listenPort" value="6200" />
-		
+		class="mappingrpc.test.centerserver.service.mock.UserServiceImpl"/>
+
+	<bean name="pingService" factory-bean="gatewayEntry"
+		factory-method="createConsumerProxy">
+		<constructor-arg value="mappingrpc.test.localserver.export2center.service.PingService"/>
+	</bean>
+
+	<bean name="gatewayEntry" class="github.mappingrpc.core.CoreEngine"
+		init-method="start">
+		<constructor-arg value="true"/>
+		<property name="listenPort" value="6200"/>
+
 		<property name="providerList">
 			<list>
-				<ref bean="userServiceImpl" />
+				<ref bean="userServiceImpl"/>
 			</list>
 		</property>
 	</bean>

@@ -159,6 +159,10 @@ public class MappingPackageClient implements Closeable {
 			return false;
 		}
 	}
+	
+	public boolean isRpcWithServerOk(){
+		return isChannelActive(); // FIXME too simple
+	}
 
 	private void reconnect() {
 		Channel localChannel = null;

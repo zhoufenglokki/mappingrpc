@@ -26,5 +26,11 @@
 				<prop key="localhost">6200</prop>
 			</props>
 		</property>
+
+		<property name="providerList">
+			<list>
+				<ref bean="pingServiceImpl"/>
+			</list>
+		</property>
 	</bean>
 </beans>

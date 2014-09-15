@@ -6,7 +6,7 @@ public class PingServiceImpl implements PingService {
 
 	@Override
 	public String echo(String msg) {
-		return msg;
+		return "echo:"+ msg;
 	}
 
 }

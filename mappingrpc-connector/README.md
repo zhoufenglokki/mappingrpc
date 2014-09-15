@@ -30,13 +30,15 @@ Feature
 ===========
 target:two way rpc
 
-easy session api:multiple session model
+spi(Service Program Interface) with client fixture
 
-self session:multi api level
+cookie on client fixture
 
 seperate not important:process flow with Thread Model
 
-spi(Service Program Interface) with client fixture
+easy session api:multiple session model
+
+self session:multi api level
 
 Session
 ===========
