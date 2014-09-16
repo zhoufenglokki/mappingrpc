@@ -130,6 +130,9 @@ namespace mappingrpc
 			}
 			return default(T);
 		}
+		public bool isRpcWithServerOk(){
+			return ioSession.Connected;
+		}
 	}
 }
 
