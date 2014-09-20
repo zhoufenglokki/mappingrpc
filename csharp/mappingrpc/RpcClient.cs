@@ -22,6 +22,12 @@ namespace mappingrpc
 		IoSession ioSession;
 		volatile int connecting = 0; 
 
+		public RpcClient(String host, short port){
+			HostPort serverConfig = new HostPort (host, port);
+			this.serverList = new List<HostPort> ();
+			this.serverList.Add (serverConfig);
+		}
+
 		public RpcClient(IList<HostPort> serverList){
 			this.serverList = serverList;
 		}
