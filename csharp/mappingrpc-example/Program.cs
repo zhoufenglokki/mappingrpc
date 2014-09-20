@@ -8,6 +8,7 @@ namespace mappingrpcexample
 		public static void Main (string[] args)
 		{
 			UserServiceClient userServiceClient = new UserServiceClient ();
+			Thread.Sleep (50);
 			User user = new User();
 			user.DisplayName = "happy";
 			user = userServiceClient.registerUser(user, "6237");

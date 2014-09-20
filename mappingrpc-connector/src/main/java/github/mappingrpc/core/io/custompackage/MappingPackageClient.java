@@ -48,9 +48,9 @@ public class MappingPackageClient implements Closeable {
 	HeartbeatThread heartbeatRunner = null;
 	volatile boolean heartbeatIsStarted = false;
 	AtomicBoolean heartbeatIsStarting = new AtomicBoolean(false);
-	
+
 	// FIXME not share queue between connection
-	BlockingQueue<BossThreadEvent> bossThreadEventQueue = new LinkedBlockingQueue<BossThreadEvent>(100); 
+	BlockingQueue<BossThreadEvent> bossThreadEventQueue = new LinkedBlockingQueue<BossThreadEvent>(100);
 
 	public MappingPackageClient(MetaHolder metaHolder, Map<String, String> serverMap) {
 		this.metaHolder = metaHolder;
@@ -159,8 +159,8 @@ public class MappingPackageClient implements Closeable {
 			return false;
 		}
 	}
-	
-	public boolean isRpcWithServerOk(){
+
+	public boolean isRpcWithServerOk() {
 		return isChannelActive(); // FIXME too simple
 	}
 
@@ -241,25 +241,30 @@ public class MappingPackageClient implements Closeable {
 		callCmd.setArgs(args);
 		CallResultFuture future = new CallResultFuture(returnType);
 		metaHolder.getRequestPool().put(callCmd.getRequestId(), future);
-		boolean sended = false;
-		for (int i = 0; i < 150; i++) {
-			if (channel == null || !channel.isActive()) {
-				try {
-					Thread.sleep(100);
-				} catch (InterruptedException e) {
-					log.error("{msg:'InterruptedException will be ignore'}", e);
+		try {
+			boolean sended = false;
+			for (int i = 0; i < 150; i++) {
+				if (channel == null || !channel.isActive()) {
+					try {
+						Thread.sleep(100);
+					} catch (InterruptedException e) {
+						log.error("{msg:'InterruptedException will be ignore'}", e);
+					}
+					continue;
+				} else {
+					channel.writeAndFlush(callCmd);
+					sended = true;
+					break;
 				}
-				continue;
-			} else {
-				channel.writeAndFlush(callCmd);
-				sended = true;
-				break;
 			}
-		}
-		if (sended) {
-			return future.get(300000); // FIXME return void
-		} else {
-			throw new TimeoutException("timeout exceed 300000ms");// TODO
+			if (sended) {
+				Object result = future.get(300000); // FIXME return void
+				return result;
+			} else {
+				throw new TimeoutException("timeout exceed 300000ms");// TODO
+			}
+		} finally {
+			metaHolder.getRequestPool().remove(callCmd.getRequestId());
 		}
 	}
 

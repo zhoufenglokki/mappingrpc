@@ -87,9 +87,10 @@ namespace mappingrpc
 				}
 				return;
 			}
-			if (commandType == MsgTypeConstant.error) {// TODO
+			if (commandType == MsgTypeConstant.error) {
 				long requestId = jsonArray [2].ToObject<int> ();
 				CallResultFuture future = (CallResultFuture)metaHolder.requestPool [requestId];
+				metaHolder.requestPool.Remove (requestId);
 				future.done = true;
 				future.isExceptionResult = true;
 				lock (future.monitorLock) {
