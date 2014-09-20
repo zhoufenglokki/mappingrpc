@@ -139,6 +139,7 @@ public class MappingPackageClient implements Closeable {
 		if (isChannelActive()) {
 			return;
 		}
+		metaHolder.getRequestPool().clear();
 
 		boolean success = isReconnecting.compareAndSet(false, true);
 		if (!success) {
@@ -226,11 +227,20 @@ public class MappingPackageClient implements Closeable {
 		}
 	}
 
-	public void sendRpcAsync() {
-
+	public void sendRpcAsync(String requestUrl, Object[] args, Class<?> returnType) {
+		this.sendRpc(requestUrl, args, returnType, 0);
 	}
 
-	public Object sendRpc(String requestUrl, Object[] args, Class<?> returnType) {
+	/**
+	 * 
+	 * @param requestUrl
+	 * @param args
+	 * @param returnType
+	 * @param timeoutInMs
+	 * 	if(timeoutInMs == 0) then send async
+	 * @return
+	 */
+	public Object sendRpc(String requestUrl, Object[] args, Class<?> returnType, long timeoutInMs) {
 		if (needKeepConnection) {
 			makeConnectionInHeartbeatThread();
 		} else {
@@ -252,13 +262,20 @@ public class MappingPackageClient implements Closeable {
 					}
 					continue;
 				} else {
-					channel.writeAndFlush(callCmd);
+					if (timeoutInMs > 0) {
+						channel.writeAndFlush(callCmd);
+					} else {
+						channel.write(callCmd);
+					}
 					sended = true;
 					break;
 				}
 			}
+			if(timeoutInMs == 0){
+				return null;
+			}
 			if (sended) {
-				Object result = future.get(300000); // FIXME return void
+				Object result = future.get(timeoutInMs); // FIXME return void
 				return result;
 			} else {
 				throw new TimeoutException("timeout exceed 300000ms");// TODO

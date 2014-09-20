@@ -15,20 +15,21 @@ namespace mappingrpc
 	public class RpcClient
 	{
 		private IList<HostPort> serverList;
-
 		Random rand = new Random ();
 		MetaHolder metaHolder = new MetaHolder ();
 		AsyncSocketConnector connector;
 		IoSession ioSession;
-		volatile int connecting = 0; 
+		volatile int connecting = 0;
 
-		public RpcClient(String host, short port){
+		public RpcClient (String host, short port)
+		{
 			HostPort serverConfig = new HostPort (host, port);
 			this.serverList = new List<HostPort> ();
 			this.serverList.Add (serverConfig);
 		}
 
-		public RpcClient(IList<HostPort> serverList){
+		public RpcClient (IList<HostPort> serverList)
+		{
 			this.serverList = serverList;
 		}
 
@@ -37,7 +38,8 @@ namespace mappingrpc
 			makeConnectionInCallerThread (1);
 		}
 
-		private void makeConnectionInCallerThread(int waitInMs) {
+		private void makeConnectionInCallerThread (int waitInMs)
+		{
 			if (ioSession != null) {
 				if (ioSession.Connected) {
 					return;
@@ -50,7 +52,8 @@ namespace mappingrpc
 			if (orgValue == 1) {
 				return;
 			}
-			HostPort serverConfig = serverList[rand.Next (serverList.Count)];
+			metaHolder.requestPool.Clear ();
+			HostPort serverConfig = serverList [rand.Next (serverList.Count)];
 
 			connector = new AsyncSocketConnector ();
 			connector.FilterChain.AddLast ("codec", new ProtocolCodecFilter (new CustomPackageFactory ()));
@@ -61,11 +64,11 @@ namespace mappingrpc
 				Console.WriteLine ("connected.");
 			};
 			Console.WriteLine ("connecting...");
-			var addresses = System.Net.Dns.GetHostAddresses(serverConfig.host);
-			var endPoint = new IPEndPoint(addresses[0], serverConfig.port);
-			try{
+			var addresses = System.Net.Dns.GetHostAddresses (serverConfig.host);
+			var endPoint = new IPEndPoint (addresses [0], serverConfig.port);
+			try {
 				connector.Connect (endPoint).Await (waitInMs);
-			}finally{
+			} finally {
 				connecting = 0;
 			}
 		}
@@ -78,8 +81,11 @@ namespace mappingrpc
 			if (commandType == MsgTypeConstant.result) {
 				long requestId = jsonArray [1].ToObject<int> ();
 				CallResultFuture future = (CallResultFuture)metaHolder.requestPool [requestId];
-				JArray resultArray = JArray.Parse (jsonArray [3].ToString());
-				future.result = resultArray.First.ToObject(future.resultType);
+				if (future == null) {
+					return;
+				}
+				JArray resultArray = JArray.Parse (jsonArray [3].ToString ());
+				future.result = resultArray.First.ToObject (future.resultType);
 				future.done = true;
 				future.isExceptionResult = false;
 				lock (future.monitorLock) {
@@ -118,7 +124,7 @@ namespace mappingrpc
 				Monitor.Wait (asyncResult.monitorLock, timeoutInMs);
 			}
 			if (!asyncResult.done) {
-				throw new TimeoutException("{timeoutInMs:" + timeoutInMs +'}');
+				throw new TimeoutException ("{timeoutInMs:" + timeoutInMs + '}');
 			}
 			if (!asyncResult.isExceptionResult) {
 				return (T)asyncResult.result;
@@ -128,7 +134,9 @@ namespace mappingrpc
 			}
 			return default(T);
 		}
-		public bool isRpcWithServerOk(){
+
+		public bool isRpcWithServerOk ()
+		{
 			return ioSession.Connected;
 		}
 	}

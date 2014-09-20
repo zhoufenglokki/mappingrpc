@@ -19,8 +19,12 @@ public class ResultCommandHandler {
 		int i = 1;
 		resultCmd.setRequestId(jsonArray.getLongValue(i++));
 		CallResultFuture future = metaHolder.getRequestPool().get(resultCmd.getRequestId());
-		i++;//skip resultCmd.setDetails(jsonArray.getString(i++));
-		//JSONArray resultArray = jsonArray.getJSONArray(i++);
+		if (future == null) {
+			log.error("{msg:'receive timeout result, maybe server method too slow', requestId:" + resultCmd.getRequestId() + "}");
+			return;
+		}
+		i++;// skip resultCmd.setDetails(jsonArray.getString(i++));
+		// JSONArray resultArray = jsonArray.getJSONArray(i++);
 		Object result = jsonArray.getJSONArray(i++).getObject(0, future.getReturnType());
 		future.put(result);
 	}

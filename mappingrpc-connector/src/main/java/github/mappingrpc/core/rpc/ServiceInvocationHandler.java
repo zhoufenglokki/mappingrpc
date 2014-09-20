@@ -51,7 +51,7 @@ public class ServiceInvocationHandler implements InvocationHandler {
 		// TODO 过滤掉hashCode()/toString()/equals等本地方法
 
 		ApiProxyMeta meta = apiHolder.get(method);
-		return rpcClient.sendRpc(meta.getRequestUrl(), args, meta.getReturnType());
+		return rpcClient.sendRpc(meta.getRequestUrl(), args, meta.getReturnType(), 300000);
 	}
 
 }
