@@ -54,6 +54,7 @@
     <Compile Include="MetaHolder.cs" />
     <Compile Include="CallResultFuture.cs" />
     <Compile Include="LengthFieldEncoder.cs" />
+    <Compile Include="HostPort.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

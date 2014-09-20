@@ -14,9 +14,7 @@ namespace mappingrpc
 {
 	public class RpcClient
 	{
-		private string host;
-		private short port;
-		private IDictionary<string, short> serverList;
+		private IList<HostPort> serverList;
 
 		Random rand = new Random ();
 		MetaHolder metaHolder = new MetaHolder ();
@@ -24,13 +22,7 @@ namespace mappingrpc
 		IoSession ioSession;
 		volatile int connecting = 0; 
 
-		public RpcClient (string host, short port)
-		{
-			this.host = host;
-			this.port = port;
-		}
-
-		public RpcClient(IDictionary<string, short> serverList){
+		public RpcClient(IList<HostPort> serverList){
 			this.serverList = serverList;
 		}
 
@@ -52,8 +44,7 @@ namespace mappingrpc
 			if (orgValue == 1) {
 				return;
 			}
-
-			int serverIndex = rand.Next (serverList.Count);
+			HostPort serverConfig = serverList[rand.Next (serverList.Count)];
 
 			connector = new AsyncSocketConnector ();
 			connector.FilterChain.AddLast ("codec", new ProtocolCodecFilter (new CustomPackageFactory ()));
@@ -64,8 +55,8 @@ namespace mappingrpc
 				Console.WriteLine ("connected.");
 			};
 			Console.WriteLine ("connecting...");
-			var addresses = System.Net.Dns.GetHostAddresses(host);
-			var endPoint = new IPEndPoint(addresses[0], port);
+			var addresses = System.Net.Dns.GetHostAddresses(serverConfig.host);
+			var endPoint = new IPEndPoint(addresses[0], serverConfig.port);
 			try{
 				connector.Connect (endPoint).Await (waitInMs);
 			}finally{
