@@ -73,6 +73,16 @@ public class CoreEngine implements BeanNameAware, Closeable {
 	 */
 	public void createProvider(Object serviceImpl) {
 		Method[] methodList = serviceImpl.getClass().getMethods();
+		
+		// 解决serviceImpl是代理类时取不到RequestMapping的问题
+		boolean isProxy = serviceImpl.getClass().toString().contains("EnhancerByCGLIB") || serviceImpl.getClass().toString().contains("com.sun.proxy.$Proxy");
+		if(mapping == null && isProxy) {
+			String className = serviceImpl.toString().substring(0,serviceImpl.toString().indexOf("@"));
+			try {
+				mapping = Class.forName(className).getMethod(method.getName(), method.getParameterTypes()).getAnnotation(RequestMapping.class);
+			} catch (NoSuchMethodException | SecurityException | ClassNotFoundException e) {}
+		}
+		
 		for (Method method : methodList) {
 			RequestMapping mapping = method.getAnnotation(RequestMapping.class);
 			if (mapping != null) {
