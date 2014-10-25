@@ -42,7 +42,7 @@ public class CommandJsonTest {
 			CallCommand callCmd = new CallCommand();
 			assert array.size() >= 5;
 			callCmd.setRequestId(array.getLongValue(i++));
-			callCmd.setOptions(array.getString(i++));
+			callCmd.setOptions(new JSONObject());
 			callCmd.setProcedureUri(array.getString(i++));
 
 			// 以下需要 JSONArray.getArray(int index, Type[] types)更直接的功能

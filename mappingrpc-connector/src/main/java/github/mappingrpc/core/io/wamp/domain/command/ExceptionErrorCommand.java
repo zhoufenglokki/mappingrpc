@@ -1,6 +1,7 @@
 package github.mappingrpc.core.io.wamp.domain.command;
 
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.serializer.SerializerFeature;
 
 import github.mappingrpc.core.io.wamp.constant.MsgTypeConstant;
 
@@ -70,7 +71,7 @@ public class ExceptionErrorCommand implements WampCommandBase {
 
 	@Override
 	public String toCommandJson() {
-		return JSONObject.toJSONString(fieldToArray());
+		return JSONObject.toJSONString(fieldToArray(), SerializerFeature.WriteClassName);
 	}
 
 }

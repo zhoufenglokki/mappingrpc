@@ -5,11 +5,12 @@ import github.mappingrpc.core.io.wamp.constant.MsgTypeConstant;
 import java.util.concurrent.atomic.AtomicLong;
 
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.serializer.SerializerFeature;
 
 public class CallCommand implements WampCommandBase {
 	private int msgType = MsgTypeConstant.call;
 	private long requestId = 1;
-	private String options = "{}";
+	private JSONObject options = new JSONObject();
 	private String procedureUri;
 	private Object[] args;
 	
@@ -32,11 +33,11 @@ public class CallCommand implements WampCommandBase {
 		this.requestId = requestId;
 	}
 
-	public String getOptions() {
+	public JSONObject getOptions() {
 		return options;
 	}
 
-	public void setOptions(String options) {
+	public void setOptions(JSONObject options) {
 		this.options = options;
 	}
 

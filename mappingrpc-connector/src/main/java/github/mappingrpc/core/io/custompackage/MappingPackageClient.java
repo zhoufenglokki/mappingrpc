@@ -1,10 +1,16 @@
 package github.mappingrpc.core.io.custompackage;
 
+import github.mappingrpc.api.clientside.domain.Cookie;
+import github.mappingrpc.api.clientside.manager.ClientCookieManager;
+import github.mappingrpc.api.clientside.manager.CookieStoreManager;
 import github.mappingrpc.api.constant.Feature1;
+import github.mappingrpc.api.constant.SiteConfigConstant;
 import github.mappingrpc.api.exception.TimeoutException;
-import github.mappingrpc.core.constant.BossThreadEventType;
-import github.mappingrpc.core.event.BossThreadEvent;
+import github.mappingrpc.core.constant.ClientDaemonThreadEventType;
+import github.mappingrpc.core.event.ClientDaemonThreadEvent;
+import github.mappingrpc.core.event.TimerAndEventDaemonThread;
 import github.mappingrpc.core.io.commonhandler.DisconnectDetectHandler;
+import github.mappingrpc.core.io.wamp.domain.command.CallCmdCookie;
 import github.mappingrpc.core.io.wamp.domain.command.CallCommand;
 import github.mappingrpc.core.metadata.MetaHolder;
 import github.mappingrpc.core.metadata.ServerMeta;
@@ -27,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -34,23 +41,27 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class MappingPackageClient implements Closeable {
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+
+public final class MappingPackageClient implements Closeable {
 	static Logger log = LoggerFactory.getLogger(MappingPackageClient.class);
 
 	private MetaHolder metaHolder;
 	private List<ServerMeta> serverList = new ArrayList<>();
 	private byte reconnectCountWhenSendRpc = 3;
 	private boolean needKeepConnection = true;
+	private Map<String, String> siteConfig = new ConcurrentHashMap<String, String>(1);
 
 	volatile Channel channel = null;
-	AtomicBoolean isReconnecting = new AtomicBoolean(false);
 
-	HeartbeatThread heartbeatRunner = null;
-	volatile boolean heartbeatIsStarted = false;
-	AtomicBoolean heartbeatIsStarting = new AtomicBoolean(false);
+	AtomicBoolean isReconnecting = new AtomicBoolean(false);
+	BlockingQueue<ClientDaemonThreadEvent> bossThreadEventQueue = new LinkedBlockingQueue<ClientDaemonThreadEvent>(100);
+	TimerAndEventDaemonThread daemonThread = new TimerAndEventDaemonThread(bossThreadEventQueue);
+
+	ClientCookieManager cookieManager;
 
 	// FIXME not share queue between connection
-	BlockingQueue<BossThreadEvent> bossThreadEventQueue = new LinkedBlockingQueue<BossThreadEvent>(100);
 
 	public MappingPackageClient(MetaHolder metaHolder, Map<String, String> serverMap) {
 		this.metaHolder = metaHolder;
@@ -68,6 +79,10 @@ public class MappingPackageClient implements Closeable {
 
 	/** app instance start */
 	public void start() {
+		if ((metaHolder.getFeature1() & Feature1.clientFeature_needReturnDownStreamSetCookieToUpStream) > 0) {
+
+		}
+
 		if ((metaHolder.getFeature1() & Feature1.clientFeature_needKeepConnection) > 0) {
 			needKeepConnection = true;
 		} else {
@@ -75,8 +90,18 @@ public class MappingPackageClient implements Closeable {
 		}
 
 		if (needKeepConnection) {
-			makeConnectionInHeartbeatThread();
+			KeepConnectionJob job = new KeepConnectionJob();
+			daemonThread.addTimerJob(job).addEventHanler(ClientDaemonThreadEventType.channelDisconnected, job);
 		}
+		
+		CookieStoreManager cookieStoreManager = new CookieStoreManager(siteConfig.get(SiteConfigConstant.client_connectionName)
+				, siteConfig.get(SiteConfigConstant.client_fixture_savePath));
+
+		cookieManager = new ClientCookieManager(cookieStoreManager);
+		cookieManager.start();
+		daemonThread.addTimerJob(new FlushCookieJob());
+
+		daemonThread.start();
 	}
 
 	@Override
@@ -91,9 +116,9 @@ public class MappingPackageClient implements Closeable {
 	 * close resource
 	 */
 	public synchronized void clossResource() {
-		if (heartbeatRunner != null) {
+		if (daemonThread != null) {
 			try {
-				heartbeatRunner.close();
+				daemonThread.close();
 			} catch (Throwable ex) {
 				log.error(ex.getMessage(), ex);
 			}
@@ -107,31 +132,6 @@ public class MappingPackageClient implements Closeable {
 			} finally {
 				channel = null;
 			}
-		}
-	}
-
-	private void makeConnectionInHeartbeatThread() {
-		if (heartbeatIsStarted) {
-			return;
-		}
-		boolean success = heartbeatIsStarting.compareAndSet(false, true);
-		if (!success) {
-			return;
-		}
-
-		if (heartbeatRunner != null) {
-			try {
-				heartbeatRunner.close();
-			} catch (Throwable ex) {
-				log.debug(ex.getMessage(), ex);
-			}
-		}
-
-		try {
-			heartbeatRunner = new HeartbeatThread();
-			heartbeatRunner.start();
-		} finally {
-			heartbeatIsStarting.set(false);
 		}
 	}
 
@@ -150,7 +150,6 @@ public class MappingPackageClient implements Closeable {
 		} finally {
 			isReconnecting.set(false);
 		}
-
 	}
 
 	private boolean isChannelActive() {
@@ -227,8 +226,14 @@ public class MappingPackageClient implements Closeable {
 		}
 	}
 
-	public void sendRpcAsync(String requestUrl, Object[] args, Class<?> returnType) {
-		this.sendRpc(requestUrl, args, returnType, 0);
+	public void sendRpcOneWay(String requestUrl, Object[] args, Class<?> returnType) {
+		if (!isChannelActive()) {
+			return;
+		}
+		CallCommand callCmd = new CallCommand();
+		callCmd.setProcedureUri(requestUrl);
+		callCmd.setArgs(args);
+		channel.write(callCmd);
 	}
 
 	/**
@@ -237,18 +242,22 @@ public class MappingPackageClient implements Closeable {
 	 * @param args
 	 * @param returnType
 	 * @param timeoutInMs
-	 * 	if(timeoutInMs == 0) then send async
 	 * @return
 	 */
 	public Object sendRpc(String requestUrl, Object[] args, Class<?> returnType, long timeoutInMs) {
-		if (needKeepConnection) {
-			makeConnectionInHeartbeatThread();
-		} else {
+		if (!needKeepConnection) {
 			makeConnectionInCallerThread();
 		}
 		CallCommand callCmd = new CallCommand();
 		callCmd.setProcedureUri(requestUrl);
 		callCmd.setArgs(args);
+
+		String cookieJson = cookieManager.getCookieForSendToServer();
+		if (cookieJson != null && cookieJson.length() > 0) {
+			CallCmdCookie callCmdCookie = new CallCmdCookie(cookieJson);
+			callCmd.getOptions().put("Cookie", callCmdCookie);
+		}
+
 		CallResultFuture future = new CallResultFuture(returnType);
 		metaHolder.getRequestPool().put(callCmd.getRequestId(), future);
 		try {
@@ -258,25 +267,20 @@ public class MappingPackageClient implements Closeable {
 					try {
 						Thread.sleep(100);
 					} catch (InterruptedException e) {
-						log.error("{msg:'InterruptedException will be ignore'}", e);
+						throw new RuntimeException(e);
 					}
 					continue;
 				} else {
-					if (timeoutInMs > 0) {
-						channel.writeAndFlush(callCmd);
-					} else {
-						channel.write(callCmd);
-					}
+					channel.writeAndFlush(callCmd);
 					sended = true;
 					break;
 				}
 			}
-			if(timeoutInMs == 0){
-				return null;
-			}
 			if (sended) {
-				Object result = future.get(timeoutInMs); // FIXME return void
-				return result;
+				future.waitReturn(timeoutInMs);
+				processSetCookie(future.getDetail());
+				
+				return future.getResult();
 			} else {
 				throw new TimeoutException("timeout exceed 300000ms");// TODO
 			}
@@ -284,50 +288,35 @@ public class MappingPackageClient implements Closeable {
 			metaHolder.getRequestPool().remove(callCmd.getRequestId());
 		}
 	}
+	
+	private void processSetCookie(JSONObject detail){
+		JSONArray setCookieList = detail.getJSONArray("Set-Cookie");
+		if(setCookieList != null){
+			Cookie[] cookieList = new Cookie[setCookieList.size()];
+			for(int i= 0; i< setCookieList.size();i++){
+				cookieList[i] = setCookieList.getObject(i, Cookie.class);
+			}
+			cookieManager.processSetCookie(cookieList);
+		}		
+	}
 
-	class HeartbeatThread extends Thread {
-		private volatile boolean toStop = false;
+	public void setSiteConfig(Map<String, String> siteConfig) {
+		this.siteConfig = siteConfig;
+	}
 
-		HeartbeatThread() {
-			super("MappingPackageClient-Heartbeat");
-			heartbeatIsStarted = true;
-			setDaemon(true);
-		}
-
-		public void close() {
-			toStop = true;
-			bossThreadEventQueue.offer(new BossThreadEvent(BossThreadEventType.closeBossThread));
-		}
+	class KeepConnectionJob implements Runnable {
 
 		@Override
 		public void run() {
 			makeConnectionInCallerThread();
-			while (true) {
-				try {
-					BossThreadEvent event = bossThreadEventQueue.poll(500, TimeUnit.MILLISECONDS);
-					if (isInterrupted()) {
-						return;
-					}
-					if (toStop) {
-						return;
-					}
+		}
+	}
 
-					if (event == null) {// poll() timeout 500ms
-						makeConnectionInCallerThread();
-						continue;
-					}
+	class FlushCookieJob implements Runnable {
 
-					if (event.getEventType() == BossThreadEventType.channelDisconnected) {
-						makeConnectionInCallerThread();
-						continue;
-					}
-				} catch (InterruptedException ex) {
-					break;
-				} catch (Throwable ex) {
-					log.error(ex.getMessage(), ex);
-					continue;
-				}
-			}
+		@Override
+		public void run() {
+			cookieManager.flushCookieToDisk();
 		}
 
 	}

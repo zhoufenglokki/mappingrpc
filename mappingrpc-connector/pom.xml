@@ -4,7 +4,7 @@
 
 	<groupId>com.github.mappingrpc</groupId>
 	<artifactId>mappingrpc-connector</artifactId>
-	<version>1.0.1-SNAPSHOT</version>
+	<version>1.0.1</version>
 	<packaging>jar</packaging>
 
 	<name>mappingrpc-connector</name>

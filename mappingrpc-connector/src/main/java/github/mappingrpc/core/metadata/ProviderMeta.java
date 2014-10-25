@@ -6,6 +6,7 @@ public class ProviderMeta {
 	private String mapping;
 	private Object serviceImpl;
 	private Method method;
+	private boolean returnTypeGeneric;
 
 	public String getMapping() {
 		return mapping;
@@ -29,5 +30,13 @@ public class ProviderMeta {
 
 	public void setMethod(Method method) {
 		this.method = method;
+	}
+
+	public boolean isReturnTypeGeneric() {
+		return returnTypeGeneric;
+	}
+
+	public void setReturnTypeGeneric(boolean returnTypeGeneric) {
+		this.returnTypeGeneric = returnTypeGeneric;
 	}
 }

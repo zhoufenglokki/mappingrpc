@@ -1,7 +1,7 @@
 package github.mappingrpc.core.io.commonhandler;
 
-import github.mappingrpc.core.constant.BossThreadEventType;
-import github.mappingrpc.core.event.BossThreadEvent;
+import github.mappingrpc.core.constant.ClientDaemonThreadEventType;
+import github.mappingrpc.core.event.ClientDaemonThreadEvent;
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
@@ -10,9 +10,9 @@ import java.util.concurrent.BlockingQueue;
 
 @Sharable
 public class DisconnectDetectHandler extends ChannelDuplexHandler {
-	private BlockingQueue<BossThreadEvent> nettyEventToOuter;
+	private BlockingQueue<ClientDaemonThreadEvent> nettyEventToOuter;
 
-	public DisconnectDetectHandler(BlockingQueue<BossThreadEvent> nettyEventToOuter) {
+	public DisconnectDetectHandler(BlockingQueue<ClientDaemonThreadEvent> nettyEventToOuter) {
 		this.nettyEventToOuter = nettyEventToOuter;
 	}
 
@@ -22,12 +22,12 @@ public class DisconnectDetectHandler extends ChannelDuplexHandler {
 	}*/
 
 	public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-		nettyEventToOuter.add(new BossThreadEvent(BossThreadEventType.channelDisconnected));
+		nettyEventToOuter.add(new ClientDaemonThreadEvent(ClientDaemonThreadEventType.channelDisconnected));
 		super.channelInactive(ctx);
 	}
 
 	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
 		ctx.close();
-		nettyEventToOuter.add(new BossThreadEvent(BossThreadEventType.channelDisconnected));
+		nettyEventToOuter.add(new ClientDaemonThreadEvent(ClientDaemonThreadEventType.channelDisconnected));
 	}
 }

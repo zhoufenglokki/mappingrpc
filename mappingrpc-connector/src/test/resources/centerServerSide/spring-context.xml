@@ -10,11 +10,6 @@
 	<bean name="userServiceImpl"
 		class="mappingrpc.test.centerserver.service.mock.UserServiceImpl"/>
 
-	<bean name="pingService" factory-bean="gatewayEntry"
-		factory-method="createConsumerProxy">
-		<constructor-arg value="mappingrpc.test.localserver.export2center.service.PingService"/>
-	</bean>
-
 	<bean name="gatewayEntry" class="github.mappingrpc.core.CoreEngine"
 		init-method="start">
 		<constructor-arg value="true"/>

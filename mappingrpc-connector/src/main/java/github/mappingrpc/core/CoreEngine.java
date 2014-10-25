@@ -1,6 +1,8 @@
 package github.mappingrpc.core;
 
 import github.mappingrpc.api.annotation.RequestMapping;
+import github.mappingrpc.api.callback.ClientSideConnectedBizListener;
+import github.mappingrpc.api.constant.SiteConfigConstant;
 import github.mappingrpc.core.io.custompackage.MappingPackageClient;
 import github.mappingrpc.core.io.custompackage.MappingPackageServer;
 import github.mappingrpc.core.metadata.MetaHolder;
@@ -12,6 +14,7 @@ import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -28,7 +31,10 @@ public class CoreEngine implements BeanNameAware, Closeable {
 	private String listenIp; // TODO
 	private short listenPort = 6200;
 	private Map<String, String> serverList;
+	private Map<String, String> siteConfig = new ConcurrentHashMap<String, String>();
 	private String beanName;
+	private String cookieStoreManagerClass = "github.mappingrpc.api.clientside.manager.CookieStoreManager";
+	private boolean needStoreCookieToDisk = false;
 
 	MetaHolder metaHolder = new MetaHolder();
 	MappingPackageServer listenServer;
@@ -50,7 +56,10 @@ public class CoreEngine implements BeanNameAware, Closeable {
 			listenServer = new MappingPackageServer(metaHolder, listenPort);
 			listenServer.start();
 		} else {
+			siteConfig.put(SiteConfigConstant.client_connectionName, this.beanName);
+
 			connectServer = new MappingPackageClient(metaHolder, serverList);
+			connectServer.setSiteConfig(siteConfig);
 			connectServer.start();
 			serverList = null;
 		}
@@ -123,5 +132,13 @@ public class CoreEngine implements BeanNameAware, Closeable {
 	@Override
 	public void setBeanName(String name) {
 		this.beanName = name;
+	}
+	
+	public void setSiteConfig(Map<String, String> siteConfig){
+		this.siteConfig = siteConfig;
+	}
+
+	public void setClientSideConnectedBizListener(ClientSideConnectedBizListener listener){
+		
 	}
 }

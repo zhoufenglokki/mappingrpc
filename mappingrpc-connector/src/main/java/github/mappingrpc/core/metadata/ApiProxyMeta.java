@@ -4,6 +4,7 @@ public class ApiProxyMeta {
 	private String requestUrl;
 	private Class<?> returnType;
 	private Class<?>[] parameterTypes;
+	private boolean paramTypeGeneric;
 
 	public String getRequestUrl() {
 		return requestUrl;
@@ -27,6 +28,14 @@ public class ApiProxyMeta {
 
 	public void setParameterTypes(Class<?>[] parameterTypes) {
 		this.parameterTypes = parameterTypes;
+	}
+
+	public boolean isParamTypeGeneric() {
+		return paramTypeGeneric;
+	}
+
+	public void setParamTypeGeneric(boolean paramTypeGeneric) {
+		this.paramTypeGeneric = paramTypeGeneric;
 	}
 
 }

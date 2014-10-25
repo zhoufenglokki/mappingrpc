@@ -1,6 +1,6 @@
 package github.mappingrpc.core.constant;
 
-public class BossThreadEventType {
+public class ClientDaemonThreadEventType {
 	public static final byte noEvent = 0;
 
 	@Deprecated
@@ -9,5 +9,5 @@ public class BossThreadEventType {
 	@Deprecated
 	public static final byte channelConnected = 2;
 	public static final byte channelDisconnected = 3;
-	public static final byte closeBossThread = 4;
+	public static final byte closeDaemonThread = 4;
 }
