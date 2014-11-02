@@ -9,6 +9,8 @@ using Mina.Filter.Logging;
 using Newtonsoft.Json;
 using System.Threading;
 using System.Collections.Generic;
+using mappingrpc.cookie;
+using mappingrpc.clientside.cookie;
 
 namespace mappingrpc
 {
@@ -20,6 +22,8 @@ namespace mappingrpc
 		AsyncSocketConnector connector;
 		IoSession ioSession;
 		volatile int connecting = 0;
+
+		ClientCookieManager cookieManager;
 
 		public RpcClient (String host, short port)
 		{
@@ -35,6 +39,9 @@ namespace mappingrpc
 
 		public void start ()
 		{
+			CookieStoreManager cookieStoreManager = new CookieStoreManager ("connectionName", "savePath");
+			cookieManager = new ClientCookieManager (cookieStoreManager);
+			cookieManager.start ();
 			makeConnectionInCallerThread (1);
 		}
 
@@ -84,7 +91,14 @@ namespace mappingrpc
 				if (future == null) {
 					return;
 				}
-				JArray resultArray = JArray.Parse (jsonArray [3].ToString ());
+				Dictionary<string, object> details = jsonArray [2].ToObject<Dictionary<string, object>>();
+				object mapValue;
+				if (details.TryGetValue ("Set-Cookie", out mapValue)) {
+					JArray cookieArray = (JArray)mapValue;
+					processSetCookie (cookieArray);
+				}
+				// JArray resultArray = JArray.Parse (jsonArray [3].ToString ());
+				JArray resultArray = (JArray)jsonArray [3];
 				future.result = resultArray.First.ToObject (future.resultType);
 				future.done = true;
 				future.isExceptionResult = false;
@@ -105,6 +119,11 @@ namespace mappingrpc
 				return;
 			}
 			// TODO 需要改为线程池处理
+		}
+
+		private void processSetCookie(JArray cookieArray){
+			mappingrpc.cookie.Cookie[] cookieList = cookieArray.ToObject<mappingrpc.cookie.Cookie[]> ();
+			cookieManager.processSetCookie (cookieList);
 		}
 
 		public T invoke<T> (int timeoutInMs, string mappingUrl, params object[] paramList)

@@ -55,10 +55,14 @@
     <Compile Include="CallResultFuture.cs" />
     <Compile Include="LengthFieldEncoder.cs" />
     <Compile Include="HostPort.cs" />
+    <Compile Include="cookie\CookieStoreManager.cs" />
+    <Compile Include="cookie\ClientCookieManager.cs" />
+    <Compile Include="cookie\Cookie.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
     <Folder Include="command\" />
     <Folder Include="constant\" />
+    <Folder Include="cookie\" />
   </ItemGroup>
 </Project>
