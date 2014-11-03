@@ -22,7 +22,7 @@ namespace mappingrpc
 		AsyncSocketConnector connector;
 		IoSession ioSession;
 		volatile int connecting = 0;
-
+		Dictionary<string, object> siteConfig = new Dictionary<string, object> ();
 		ClientCookieManager cookieManager;
 
 		public RpcClient (String host, short port)
@@ -37,9 +37,23 @@ namespace mappingrpc
 			this.serverList = serverList;
 		}
 
+		public void setSiteConfig (Dictionary<string, object> config)
+		{
+			this.siteConfig = config;
+		}
+
 		public void start ()
 		{
-			CookieStoreManager cookieStoreManager = new CookieStoreManager ("connectionName", "savePath");
+			object cookieSavePath;
+			if (!siteConfig.TryGetValue (SiteConfigConstant.key_cookieSavePath, out cookieSavePath)) {
+				cookieSavePath = "/sdcard/mappingRpc";
+			}
+			object cookieConnectionName;
+			if (!siteConfig.TryGetValue (SiteConfigConstant.key_cookieSavePath, out cookieConnectionName)) {
+				Random random = new Random ();
+				cookieConnectionName = random.Next ().ToString ();
+			}
+			CookieStoreManager cookieStoreManager = new CookieStoreManager (cookieConnectionName.ToString (), cookieSavePath.ToString ());
 			cookieManager = new ClientCookieManager (cookieStoreManager);
 			cookieManager.start ();
 			makeConnectionInCallerThread (1);
@@ -91,7 +105,7 @@ namespace mappingrpc
 				if (future == null) {
 					return;
 				}
-				Dictionary<string, object> details = jsonArray [2].ToObject<Dictionary<string, object>>();
+				Dictionary<string, object> details = jsonArray [2].ToObject<Dictionary<string, object>> ();
 				object mapValue;
 				if (details.TryGetValue ("Set-Cookie", out mapValue)) {
 					JArray cookieArray = (JArray)mapValue;
@@ -121,7 +135,8 @@ namespace mappingrpc
 			// TODO 需要改为线程池处理
 		}
 
-		private void processSetCookie(JArray cookieArray){
+		private void processSetCookie (JArray cookieArray)
+		{
 			mappingrpc.cookie.Cookie[] cookieList = cookieArray.ToObject<mappingrpc.cookie.Cookie[]> ();
 			cookieManager.processSetCookie (cookieList);
 		}

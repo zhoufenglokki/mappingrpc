@@ -58,6 +58,7 @@
     <Compile Include="cookie\CookieStoreManager.cs" />
     <Compile Include="cookie\ClientCookieManager.cs" />
     <Compile Include="cookie\Cookie.cs" />
+    <Compile Include="constant\SiteConfigConstant.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
