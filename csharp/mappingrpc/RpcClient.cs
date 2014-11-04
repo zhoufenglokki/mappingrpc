@@ -49,7 +49,7 @@ namespace mappingrpc
 				cookieSavePath = "/sdcard/mappingRpc";
 			}
 			object cookieConnectionName;
-			if (!siteConfig.TryGetValue (SiteConfigConstant.key_cookieSavePath, out cookieConnectionName)) {
+			if (!siteConfig.TryGetValue (SiteConfigConstant.key_cookieConnectionName, out cookieConnectionName)) {
 				Random random = new Random ();
 				cookieConnectionName = random.Next ().ToString ();
 			}

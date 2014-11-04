@@ -14,6 +14,9 @@ namespace mappingrpc.clientside.cookie
 
 
 		public String loadCookieFromStore() {
+			if (!File.Exists (saveFilePath)) {
+				return "[]";
+			}
 			StreamReader file = File.OpenText(saveFilePath);
 			string content = file.ReadToEnd();
 			file.Close();

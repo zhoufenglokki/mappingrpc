@@ -37,6 +37,7 @@
     <Compile Include="UserServiceClient.cs" />
     <Compile Include="CsharpClientTest.cs" />
     <Compile Include="User.cs" />
+    <Compile Include="RpcClientInstanceHolder.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
