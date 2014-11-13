@@ -16,10 +16,32 @@ namespace mappingrpcexample
 
 			Dictionary<String, object> siteConfig = new Dictionary<String, object> ();
 			siteConfig.Add (SiteConfigConstant.key_cookieSavePath, path + "/myappConfig");
+			siteConfig.Add (SiteConfigConstant.key_cookieConnectionName, "example");
 			RpcClientInstanceHolder.start (siteConfig);
-
-			UserServiceClient userServiceClient = new UserServiceClient ();
 			Thread.Sleep (50);
+
+			login ();
+	
+			Thread.Sleep (1000);
+		}
+
+		static void login(){
+			UserServiceClient userServiceClient = new UserServiceClient ();
+
+			User user = new User();
+			user.Id = 983;
+			user.DisplayName = "happy";
+
+			user = userServiceClient.login(user, "gxese", new LoginOption());
+			Console.WriteLine ("login1");
+
+			user = userServiceClient.login(user, "233uov", new LoginOption());
+			Console.WriteLine ("login2");
+		}
+
+		static void registerUser(){
+			UserServiceClient userServiceClient = new UserServiceClient ();
+
 			User user = new User();
 			user.DisplayName = "happy";
 			user = userServiceClient.registerUser(user, "6237");
@@ -28,7 +50,6 @@ namespace mappingrpcexample
 			user.DisplayName = "nokia";
 			user = userServiceClient.registerUser(user, "4433");
 			Console.WriteLine ("return displayName:" + user.DisplayName);
-			Thread.Sleep (1000);
 		}
 	}
 }

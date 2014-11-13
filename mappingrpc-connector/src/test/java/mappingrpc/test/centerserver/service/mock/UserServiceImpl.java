@@ -56,4 +56,22 @@ public class UserServiceImpl implements UserService {
 		ServerCookieManager.attachCookieToUpStreamInDetail(cookie);
 		return new ModelResult(user);
 	}
+	
+	@Override
+	@RequestMapping("/userService/loginNoGenericsResult/v20141110/")
+	public User loginNoGenericsResult(User user, String password, LoginOption option) {
+		long uuid;
+		try {
+			uuid = SecureRandom.getInstanceStrong().nextLong();
+		} catch (NoSuchAlgorithmException e) {
+			throw new RuntimeException(e);
+		}
+		
+		Cookie cookie = new Cookie();
+		cookie.setName("loginToken");
+		cookie.setValue(uuid + "");
+		cookie.setMaxAge(3000);
+		ServerCookieManager.attachCookieToUpStreamInDetail(cookie);
+		return user;
+	}
 }

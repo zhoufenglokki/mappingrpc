@@ -1,6 +1,7 @@
 using System;
 using Newtonsoft.Json.Linq;
 using System.Threading;
+using System.Collections.Generic;
 
 namespace mappingrpc.command
 {
@@ -8,7 +9,7 @@ namespace mappingrpc.command
 	{
 		public int msgType = MsgTypeConstant.call;
 		public long requestId = 1;
-		public string options = "{}";
+		public Dictionary<string, object> options = new Dictionary<string, object> ();
 		public string procedureUri;
 		public object[] args;
 		static long requestIdPool = 1;

@@ -18,4 +18,7 @@ public interface UserService {
 	
 	@RequestMapping("/userService/loginMobile/v20141013/")
 	public ModelResult<User> login(User user, String password, LoginOption option);
+	
+	@RequestMapping("/userService/loginNoGenericsResult/v20141110/")
+	public User loginNoGenericsResult(User user, String password, LoginOption option);
 }

@@ -38,6 +38,7 @@
     <Compile Include="CsharpClientTest.cs" />
     <Compile Include="User.cs" />
     <Compile Include="RpcClientInstanceHolder.cs" />
+    <Compile Include="domain\LoginOption.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
@@ -48,5 +49,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />
+    <Folder Include="domain\" />
   </ItemGroup>
 </Project>

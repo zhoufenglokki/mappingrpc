@@ -25,6 +25,7 @@ public class CallCommandHandler {
 	public static void processCommand(MetaHolder metaHolder, ChannelHandlerContext channelCtx, JSONArray jsonArray) {
 		CallCommand callCmd = new CallCommand();
 		callCmd.setRequestId(jsonArray.getLongValue(1));
+		//System.err.println("2:" + jsonArray.getString(2));
 		callCmd.setOptions(jsonArray.getJSONObject(2));
 		callCmd.setProcedureUri(jsonArray.getString(3));
 		ProviderMeta providerMeta = metaHolder.getProviderHolder().get(callCmd.getProcedureUri());

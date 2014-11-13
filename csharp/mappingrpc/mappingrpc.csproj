@@ -40,6 +40,7 @@
     <Reference Include="Newtonsoft.Json">
       <HintPath>..\..\..\..\csharp\lib\net20\json\Newtonsoft.Json.dll</HintPath>
     </Reference>
+    <Reference Include="mscorlib" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblyInfo.cs" />
@@ -57,8 +58,9 @@
     <Compile Include="HostPort.cs" />
     <Compile Include="cookie\CookieStoreManager.cs" />
     <Compile Include="cookie\ClientCookieManager.cs" />
-    <Compile Include="cookie\Cookie.cs" />
     <Compile Include="constant\SiteConfigConstant.cs" />
+    <Compile Include="cookie\CookieToServer.cs" />
+    <Compile Include="cookie\Cookie.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

@@ -7,9 +7,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@Deprecated
 /**
- * deprecated, because same name with springmvc in same file
  * 
  * @author zhoufenglokki
  *
@@ -19,6 +17,6 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 @Inherited
 //@Repeatable java8才支持，可改为 String[] value()来实现
-public @interface RequestMapping {
+public @interface RpcRequestMapping {
 	String value();
 }

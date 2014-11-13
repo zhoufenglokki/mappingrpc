@@ -11,6 +11,10 @@ namespace mappingrpcexample
 		{
 			return RpcClientInstanceHolder.rpcClient.invoke<User> (1500, "/userservice/register/20140305/", user, password);
 		}
+
+		public User login(User user, String password, LoginOption option){
+			return RpcClientInstanceHolder.rpcClient.invoke<User> (1500, "/userService/loginNoGenericsResult/v20141110/", user, password, option);
+		}
 	}
 }
 

@@ -97,7 +97,9 @@ namespace mappingrpc
 		public void onMessageReceived (object sender, IoSessionMessageEventArgs eventArgs)
 		{
 			String json = (String)eventArgs.Message;
+			//System.Console.WriteLine (json);
 			JArray jsonArray = JArray.Parse (json);
+			//System.Console.WriteLine ("jsonArray:" + jsonArray);
 			int commandType = jsonArray [0].Value<int> ();
 			if (commandType == MsgTypeConstant.result) {
 				long requestId = jsonArray [1].ToObject<int> ();
@@ -150,12 +152,14 @@ namespace mappingrpc
 			CallCommand callCmd = new CallCommand ();
 			callCmd.procedureUri = mappingUrl;
 			callCmd.args = paramList;
+			callCmd.options.Add("Cookie", cookieManager.getCookieForSendToServer());
 			CallResultFuture asyncResult = new CallResultFuture ();
 			metaHolder.requestPool.Add (callCmd.requestId, asyncResult);
 			asyncResult.resultType = typeof(T);
 			ioSession.Write (callCmd);
 			lock (asyncResult.monitorLock) {
-				Monitor.Wait (asyncResult.monitorLock, timeoutInMs);
+				//Monitor.Wait (asyncResult.monitorLock, timeoutInMs); commented for test
+				Monitor.Wait (asyncResult.monitorLock);
 			}
 			if (!asyncResult.done) {
 				throw new TimeoutException ("{timeoutInMs:" + timeoutInMs + '}');

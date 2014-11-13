@@ -60,7 +60,7 @@ public class ResultCommand implements WampCommandBase {
 
 	@Override
 	public String toCommandJson() {
-		return JSONObject.toJSONString(fieldToArray(), SerializerFeature.WriteClassName);
+		return JSONObject.toJSONString(fieldToArray()); // SerializerFeature.WriteClassName);
 	}
 
 }
