@@ -25,7 +25,7 @@ import org.springframework.beans.factory.BeanNameAware;
 
 public class CoreEngine implements BeanNameAware, Closeable {
 	static Logger log = LoggerFactory.getLogger(CoreEngine.class);
-	
+
 	private boolean isListenEngine = false;
 	private long feature1 = 0;
 	private String listenIp; // TODO
@@ -46,7 +46,7 @@ public class CoreEngine implements BeanNameAware, Closeable {
 
 	public void start() {
 		metaHolder.setFeature1(feature1);
-		
+
 		ArrayBlockingQueue<Runnable> workQueue = new ArrayBlockingQueue<>(300);
 		ExecutorService threadPool = new ThreadPoolExecutor(4, 80, 60, TimeUnit.SECONDS, workQueue);// TODO
 																									// 加上rejectHandle
@@ -81,17 +81,21 @@ public class CoreEngine implements BeanNameAware, Closeable {
 	 * @param serviceImpl
 	 */
 	public void createProvider(Object serviceImpl) {
-		Method[] methodList = serviceImpl.getClass().getMethods();
-		
-		// 解决serviceImpl是代理类时取不到RequestMapping的问题
-		boolean isProxy = serviceImpl.getClass().toString().contains("EnhancerByCGLIB") || serviceImpl.getClass().toString().contains("com.sun.proxy.$Proxy");
-		if(mapping == null && isProxy) {
-			String className = serviceImpl.toString().substring(0,serviceImpl.toString().indexOf("@"));
+		Class<?> clazz = serviceImpl.getClass();
+
+		// when serviceImpl is proxy by aop
+		String classInfo = clazz.toString();
+		boolean isProxy = classInfo.contains("EnhancerByCGLIB") || classInfo.contains("com.sun.proxy.$Proxy");
+		if (isProxy) {
+			String className = classInfo.substring(0, classInfo.indexOf("@"));
 			try {
-				mapping = Class.forName(className).getMethod(method.getName(), method.getParameterTypes()).getAnnotation(RequestMapping.class);
-			} catch (NoSuchMethodException | SecurityException | ClassNotFoundException e) {}
+				clazz = Class.forName(className);
+			} catch (ClassNotFoundException e) {
+				log.error("{fullInfo:'" + classInfo + "', className:'" + className + "'}", e);
+			}
 		}
-		
+
+		Method[] methodList = clazz.getMethods();
 		for (Method method : methodList) {
 			RequestMapping mapping = method.getAnnotation(RequestMapping.class);
 			if (mapping != null) {
@@ -114,14 +118,14 @@ public class CoreEngine implements BeanNameAware, Closeable {
 		if (connectServer != null) {
 			connectServer.close();
 		}
-		if(listenServer != null){
+		if (listenServer != null) {
 			listenServer.close();
 		}
 	}
-	
-	public boolean isRpcWithServerOk(){
+
+	public boolean isRpcWithServerOk() {
 		return connectServer.isRpcWithServerOk();
-	} 
+	}
 
 	public void setListenPort(short listenPort) {
 		this.listenPort = listenPort;
@@ -143,12 +147,12 @@ public class CoreEngine implements BeanNameAware, Closeable {
 	public void setBeanName(String name) {
 		this.beanName = name;
 	}
-	
-	public void setSiteConfig(Map<String, String> siteConfig){
+
+	public void setSiteConfig(Map<String, String> siteConfig) {
 		this.siteConfig = siteConfig;
 	}
 
-	public void setClientSideConnectedBizListener(ClientSideConnectedBizListener listener){
-		
+	public void setClientSideConnectedBizListener(ClientSideConnectedBizListener listener) {
+
 	}
 }
