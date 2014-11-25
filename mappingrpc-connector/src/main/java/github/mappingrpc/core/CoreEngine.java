@@ -81,29 +81,45 @@ public class CoreEngine implements BeanNameAware, Closeable {
 	 * @param serviceImpl
 	 */
 	public void createProvider(Object serviceImpl) {
-		Class<?> clazz = serviceImpl.getClass();
+		Class<?> callClass = serviceImpl.getClass();
+		Class<?> annotationClass = null;
 
 		// when serviceImpl is proxy by aop
-		String classInfo = clazz.toString();
+		String classInfo = callClass.toString();
 		boolean isProxy = classInfo.contains("EnhancerByCGLIB") || classInfo.contains("com.sun.proxy.$Proxy");
 		if (isProxy) {
 			String className = classInfo.substring(0, classInfo.indexOf("@"));
 			try {
-				clazz = Class.forName(className);
+				annotationClass = Class.forName(className);
+				Method[] methodList = annotationClass.getMethods();
+				for (Method method : methodList) {
+					RequestMapping mapping = method.getAnnotation(RequestMapping.class);
+					if (mapping != null) {
+						ProviderMeta meta = new ProviderMeta();
+						meta.setMapping(mapping.value());
+						meta.setServiceImpl(serviceImpl);
+						try {
+							meta.setMethod(callClass.getMethod(method.getName(), method.getParameterTypes()));
+							metaHolder.getProviderHolder().put(mapping.value(), meta);
+						} catch (NoSuchMethodException | SecurityException e) {
+							log.error("{fullInfo:'" + classInfo + "', className:'" + className + "'}", e);
+						}
+					}
+				}				
 			} catch (ClassNotFoundException e) {
 				log.error("{fullInfo:'" + classInfo + "', className:'" + className + "'}", e);
 			}
-		}
-
-		Method[] methodList = clazz.getMethods();
-		for (Method method : methodList) {
-			RequestMapping mapping = method.getAnnotation(RequestMapping.class);
-			if (mapping != null) {
-				ProviderMeta meta = new ProviderMeta();
-				meta.setMapping(mapping.value());
-				meta.setMethod(method);
-				meta.setServiceImpl(serviceImpl);
-				metaHolder.getProviderHolder().put(mapping.value(), meta);
+		} else {
+			Method[] methodList = callClass.getMethods();
+			for (Method method : methodList) {
+				RequestMapping mapping = method.getAnnotation(RequestMapping.class);
+				if (mapping != null) {
+					ProviderMeta meta = new ProviderMeta();
+					meta.setMapping(mapping.value());
+					meta.setMethod(method);
+					meta.setServiceImpl(serviceImpl);
+					metaHolder.getProviderHolder().put(mapping.value(), meta);
+				}
 			}
 		}
 	}

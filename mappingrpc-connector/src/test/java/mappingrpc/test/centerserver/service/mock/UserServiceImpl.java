@@ -67,6 +67,10 @@ public class UserServiceImpl implements UserService {
 			throw new RuntimeException(e);
 		}
 		
+		Map<String, Cookie> cookieMap = ServerCookieManager.getReceiveCookieMap();
+		for(Map.Entry<String, Cookie> entry : cookieMap.entrySet()){
+			System.err.println("cookieName:" + entry.getValue().getName());
+		}
 		Cookie cookie = new Cookie();
 		cookie.setName("loginToken");
 		cookie.setValue(uuid + "");

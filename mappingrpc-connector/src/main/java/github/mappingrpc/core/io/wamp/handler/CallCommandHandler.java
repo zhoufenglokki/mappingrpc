@@ -24,29 +24,30 @@ public class CallCommandHandler {
 
 	public static void processCommand(MetaHolder metaHolder, ChannelHandlerContext channelCtx, JSONArray jsonArray) {
 		CallCommand callCmd = new CallCommand();
-		callCmd.setRequestId(jsonArray.getLongValue(1));
-		//System.err.println("2:" + jsonArray.getString(2));
-		callCmd.setOptions(jsonArray.getJSONObject(2));
-		callCmd.setProcedureUri(jsonArray.getString(3));
-		ProviderMeta providerMeta = metaHolder.getProviderHolder().get(callCmd.getProcedureUri());
-		Method method = providerMeta.getMethod();
-		Object[] args = JSONObject.parseArray(jsonArray.getString(4), method.getGenericParameterTypes()).toArray();
-
-		JSONArray cookieArray = callCmd.getOptions().getJSONArray("Cookie");
-		if (cookieArray != null) {
-			Map<String, Cookie> receiveCookieMap = new ConcurrentHashMap<>(8);
-			for (int i = 0; i < cookieArray.size(); i++) {
-				Cookie cookie = cookieArray.getObject(i, Cookie.class);
-				receiveCookieMap.put(cookie.getName(), cookie);
-			}
-			ServerCookieManager.setReceiveCookieMap(receiveCookieMap);
-		}else{
-			ServerCookieManager.setReceiveCookieMap(new ConcurrentHashMap<>(1));
-		}
 
 		try {
+			callCmd.setRequestId(jsonArray.getLongValue(1));
+			// System.err.println("2:" + jsonArray.getString(2));
+			callCmd.setOptions(jsonArray.getJSONObject(2));
+			callCmd.setProcedureUri(jsonArray.getString(3));
+			ProviderMeta providerMeta = metaHolder.getProviderHolder().get(callCmd.getProcedureUri());
+			Method method = providerMeta.getMethod();
+			Object[] args = JSONObject.parseArray(jsonArray.getString(4), method.getGenericParameterTypes()).toArray();
+
+			JSONArray cookieArray = callCmd.getOptions().getJSONArray("Cookie");
+			if (cookieArray != null) {
+				Map<String, Cookie> receiveCookieMap = new ConcurrentHashMap<>(8);
+				for (int i = 0; i < cookieArray.size(); i++) {
+					Cookie cookie = cookieArray.getObject(i, Cookie.class);
+					receiveCookieMap.put(cookie.getName(), cookie);
+				}
+				ServerCookieManager.setReceiveCookieMap(receiveCookieMap);
+			} else {
+				ServerCookieManager.setReceiveCookieMap(new ConcurrentHashMap<>(1));
+			}
+
 			Object result = method.invoke(providerMeta.getServiceImpl(), args);
-			
+
 			ServerCookieManager.clearReceiveCookieMap();
 
 			ResultCommand resultCmd = new ResultCommand(callCmd.getRequestId(), result);
@@ -55,7 +56,7 @@ public class CallCommandHandler {
 				resultCmd.getDetails().put("Set-Cookie", setCookieMap.values().toArray());
 				ServerCookieManager.clearSetCookieMap();
 			}
-			
+
 			channelCtx.writeAndFlush(resultCmd);
 		} catch (Throwable e) {
 			log.error("{procedureUri:'" + callCmd.getProcedureUri() + "'}", e);
